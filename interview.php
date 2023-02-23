@@ -109,28 +109,39 @@
           }
         },
         processOrder: function(order) {
-          var self = this;
-          var robot = this.robots.find(robot => robot.order === null);
-          if (robot) {
-            robot.order = order;
-            this.timerId = setTimeout(() => {
-              self.completeOrder(robot, order);
-            }, 10000);
-            
-            
-          }
-        },
+			  var self = this;
+			  if (this.robots.find(robot => robot.order === order)) {
+			    var neworder = this.pendingOrders.find(neworder => neworder != order);
+			    var robot = this.robots.find(robot => robot.order === null);
+			    if (robot) {
+			      robot.order = neworder;
+			      this.timerId = setTimeout(() => {
+			        self.completeOrder(robot, neworder);
+			      }, 10000);
+			    }      
+			  } else {
+			    var robot = this.robots.find(robot => robot.order === null);
+			    if (robot) {
+			      robot.order = order;
+			      this.timerId = setTimeout(() => {
+			        self.completeOrder(robot, order);
+			      }, 10000);  
+			      this.pendingOrders.splice(this.pendingOrders.indexOf(order), 1);          
+			    }
+			  }
+			},
         completeOrder: function(robot, order) {
           robot.order = null;
           this.completedOrders.push(order);
           this.pendingOrders.splice(this.pendingOrders.indexOf(order), 1);
           this.processOrders();
+
         },
 
         addRobot: function() {
           var robot = {
             id: this.robots.length + 1,
-            order: null
+            order: null,
           };
           this.robots.push(robot);
           this.processOrders();
