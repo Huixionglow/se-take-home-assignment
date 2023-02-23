@@ -66,7 +66,8 @@
         pendingOrders: [],
         completedOrders: [],
         robots: [],
-        orderNumber: 1
+        orderNumber: 1,
+        timers : []
       },
       methods: {
       	sortOrdersByVIP() {
@@ -108,6 +109,7 @@
             }
           }
         },
+
         processOrder: function(order) {
 			  var self = this;
 			  if (this.robots.find(robot => robot.order === order)) {
@@ -115,25 +117,27 @@
 			    var robot = this.robots.find(robot => robot.order === null);
 			    if (robot) {
 			      robot.order = neworder;
-			      this.timerId = setTimeout(() => {
+			      robot.timer=robot.id-1;
+			      this.timers.push(setTimeout(() => {
 			        self.completeOrder(robot, neworder);
-			      }, 10000);
+			      }, 10000));
 			    }      
 			  } else {
 			    var robot = this.robots.find(robot => robot.order === null);
 			    if (robot) {
 			      robot.order = order;
-			      this.timerId = setTimeout(() => {
+			      robot.timer=robot.id-1;
+			      this.timers.push(setTimeout(() => {
 			        self.completeOrder(robot, order);
-			      }, 10000);  
+			      }, 10000));  
 			      this.pendingOrders.splice(this.pendingOrders.indexOf(order), 1);          
 			    }
 			  }
-			},
+				},
+
         completeOrder: function(robot, order) {
           robot.order = null;
           this.completedOrders.push(order);
-          this.pendingOrders.splice(this.pendingOrders.indexOf(order), 1);
           this.processOrders();
 
         },
@@ -148,14 +152,15 @@
         },
 
         removeRobot: function() {
-          var robot = this.robots.find(robot => robot.order !== null);
-          if (robot) {
-          	clearTimeout(this.timerId);
-            robot.order = null;
-          }
-          this.robots.splice(this.robots.indexOf(robot), 1);
-        }        
-      }
+			  var robot = this.robots[this.robots.length - 1];
+			  if (robot.order != null) {
+			    this.pendingOrders.unshift(robot.order);
+			    clearTimeout(this.timers[robot.id-1]);
+			    robot.order = null;
+			  }
+			  this.robots.splice(this.robots.indexOf(robot), 1);
+				}
+				}
     });
   </script>
 
